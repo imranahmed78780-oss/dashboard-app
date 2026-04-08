@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { min-height: 100vh; background: #f0f2f5; display: flex; }
+        .sidebar { width: 260px; background: #1e293b; border-right: 1px solid rgba(255, 255, 255, 0.05); padding: 30px 20px; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 10; }
+        .logo { color: #fff; font-size: 1.5rem; font-weight: 700; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .logo-icon { width: 40px; height: 40px; background: #4f46e5; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .nav-links { list-style: none; flex: 1; }
+        .nav-links li { margin-bottom: 8px; }
+        .nav-links a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #94a3b8; text-decoration: none; border-radius: 10px; transition: all 0.3s ease; font-size: 0.95rem; }
+        .nav-links a:hover, .nav-links a.active { background: rgba(79, 70, 229, 0.2); color: #fff; }
+        .nav-links svg { width: 20px; height: 20px; flex-shrink: 0; }
+        .user-profile { display: flex; align-items: center; gap: 12px; padding: 16px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; margin-bottom: 12px; }
+        .logout-btn { width: calc(100% - 40px); margin: 0 20px; padding: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 10px; color: #fca5a5; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .logout-btn:hover { background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); transform: translateY(-1px); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #a855f7); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 1rem; }
+        .user-info h4 { color: #fff; font-size: 0.9rem; font-weight: 600; }
+        .user-info p { color: rgba(255, 255, 255, 0.6); font-size: 0.75rem; }
+        .main-content { flex: 1; margin-left: 260px; padding: 30px; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-shrink: 0; flex-wrap: wrap; gap: 20px; }
+        .header h1 { color: #1e293b; font-size: 1.8rem; font-weight: 700; }
+        .header p { color: #64748b; font-size: 0.95rem; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .search-box { padding: 12px 20px 12px 45px; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; color: #1e293b; font-size: 0.9rem; outline: none; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); width: 280px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 15px center; }
+        .search-box::placeholder { color: #94a3b8; }
+        .search-box:focus { border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1), 0 4px 12px rgba(79, 70, 229, 0.15); transform: translateY(-1px); }
+        .notification-btn { width: 48px; height: 48px; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; color: #475569; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; }
+        .notification-btn:hover { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #fbbf24; color: #d97706; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(251, 191, 36, 0.25); }
+        .notification-badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); border-radius: 10px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4); animation: badgePulse 2s ease-in-out infinite; }
+        @keyframes badgePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        /* Settings Content */
+        .settings-content { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+        .settings-card {
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px;
+            animation: settingsFadeIn 0.5s ease forwards; opacity: 0; transform: translateY(15px);
+        }
+        .settings-card:nth-child(1) { animation-delay: 0.1s; }
+        .settings-card:nth-child(2) { animation-delay: 0.2s; }
+        @keyframes settingsFadeIn { to { opacity: 1; transform: translateY(0); } }
+        .settings-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; }
+        .settings-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .settings-icon.username { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+        .settings-icon.password { background: linear-gradient(135deg, #fce7f3, #fbcfe8); }
+        .settings-header h2 { color: #1e293b; font-size: 1.2rem; font-weight: 700; }
+        .settings-header p { color: #94a3b8; font-size: 0.85rem; margin-top: 2px; }
+        .settings-form { display: flex; flex-direction: column; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { color: #475569; font-size: 0.85rem; font-weight: 600; }
+        .form-group input {
+            width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 10px;
+            font-size: 0.9rem; color: #1e293b; outline: none; transition: all 0.3s ease;
+        }
+        .form-group input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        .form-group input::placeholder { color: #94a3b8; }
+        .form-group input.error { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+        .form-group input.success { border-color: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1); }
+        .error-msg { color: #ef4444; font-size: 0.8rem; font-weight: 500; display: none; }
+        .error-msg.show { display: block; }
+        .success-msg { color: #22c55e; font-size: 0.8rem; font-weight: 500; display: none; }
+        .success-msg.show { display: block; }
+        .btn-save {
+            align-self: flex-end; padding: 12px 28px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4); }
+        .btn-save:active { transform: translateY(0); }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; border-radius: 12px;
+            background: #fff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); display: flex; align-items: center; gap: 12px;
+            transform: translateY(100px); opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 2000; border-left: 4px solid #22c55e;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.error { border-left-color: #ef4444; }
+        .toast-icon { font-size: 1.5rem; }
+        .toast-text { color: #1e293b; font-weight: 600; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><div class="logo-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>Dashboard</div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</a></li>
+            <li><a href="accounts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Accounts</a></li>
+            <li><a href="apikeys.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="18" y2="10"/><line x1="6" y1="14" x2="18" y2="14"/></svg>API Keys</a></li>
+            <li><a href="ainotes.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2z"/><path d="M12 8v4l3 3"/><path d="M16 2l-2 4"/><path d="M8 2l2 4"/></svg>AI Tools Notes</a></li>
+            <li><a href="settings.html" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</a></li>
+        </ul>
+        <div class="user-profile"><div class="user-avatar">I</div><div class="user-info"><h4 id="sidebarUsername">Imran</h4><p>Admin</p></div></div>
+        <button class="logout-btn" onclick="logout()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+        </button>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <div><h1>Settings</h1><p>Manage your account settings and security</p></div>
+            <div class="header-actions">
+                <input type="text" class="search-box" placeholder="Search...">
+                <button class="notification-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="notification-badge">3</span></button>
+            </div>
+        </div>
+
+        <div class="settings-content">
+            <!-- Change Username -->
+            <div class="settings-card">
+                <div class="settings-header">
+                    <div class="settings-icon username">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                    <div><h2>Change Username</h2><p>Update your display username</p></div>
+                </div>
+                <form class="settings-form" onsubmit="changeUsername(event)">
+                    <div class="form-group">
+                        <label>Current Username</label>
+                        <input type="text" id="currentUsername" value="Imran" readonly style="background:#f8fafc;">
+                    </div>
+                    <div class="form-group">
+                        <label>New Username</label>
+                        <input type="text" id="newUsernameInput" placeholder="Enter new username">
+                        <span class="error-msg" id="usernameError">Username cannot be empty!</span>
+                        <span class="success-msg" id="usernameSuccess">Username updated successfully!</span>
+                    </div>
+                    <button type="submit" class="btn-save">Update Username</button>
+                </form>
+            </div>
+
+            <!-- Change Password -->
+            <div class="settings-card">
+                <div class="settings-header">
+                    <div class="settings-icon password">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <div><h2>Change Password</h2><p>Update your account password</p></div>
+                </div>
+                <form class="settings-form" onsubmit="changePassword(event)">
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" id="currentPassword" placeholder="Enter current password">
+                        <span class="error-msg" id="passwordError">Current password is incorrect!</span>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="newPassword" placeholder="Enter new password">
+                        <span class="error-msg" id="newPasswordError">New password must be at least 4 characters!</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                        <span class="error-msg" id="confirmError">Passwords do not match!</span>
+                        <span class="success-msg" id="passwordSuccess">Password updated successfully!</span>
+                    </div>
+                    <button type="submit" class="btn-save">Update Password</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon" id="toastIcon">✅</span>
+        <span class="toast-text" id="toastText">Settings saved!</span>
+    </div>
+
+    <script>
+        // Load stored credentials or use defaults
+        let credentials = JSON.parse(localStorage.getItem('dashboardCredentials')) || { username: 'Imran', password: 'admin' };
+        document.getElementById('currentUsername').value = credentials.username;
+        document.getElementById('sidebarUsername').textContent = credentials.username;
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastText').textContent = message;
+            document.getElementById('toastIcon').textContent = isError ? '❌' : '✅';
+            toast.className = isError ? 'toast error show' : 'toast show';
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        function changeUsername(e) {
+            e.preventDefault();
+            const newVal = document.getElementById('newUsernameInput').value.trim();
+            const errorEl = document.getElementById('usernameError');
+            const successEl = document.getElementById('usernameSuccess');
+            const inputEl = document.getElementById('newUsernameInput');
+
+            errorEl.classList.remove('show');
+            successEl.classList.remove('show');
+            inputEl.classList.remove('error', 'success');
+
+            if (!newVal) {
+                errorEl.classList.add('show');
+                inputEl.classList.add('error');
+                return;
+            }
+
+            credentials.username = newVal;
+            localStorage.setItem('dashboardCredentials', JSON.stringify(credentials));
+            document.getElementById('currentUsername').value = newVal;
+            document.getElementById('sidebarUsername').textContent = newVal;
+            inputEl.value = '';
+            inputEl.classList.add('success');
+            successEl.classList.add('show');
+            showToast('Username updated to "' + newVal + '"');
+        }
+
+        function changePassword(e) {
+            e.preventDefault();
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            // Reset
+            ['passwordError', 'newPasswordError', 'confirmError'].forEach(id => document.getElementById(id).classList.remove('show'));
+            document.getElementById('passwordSuccess').classList.remove('show');
+            ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => document.getElementById(id).classList.remove('error', 'success'));
+
+            if (current !== credentials.password) {
+                document.getElementById('passwordError').classList.add('show');
+                document.getElementById('currentPassword').classList.add('error');
+                return;
+            }
+            if (newPass.length < 4) {
+                document.getElementById('newPasswordError').classList.add('show');
+                document.getElementById('newPassword').classList.add('error');
+                return;
+            }
+            if (newPass !== confirm) {
+                document.getElementById('confirmError').classList.add('show');
+                document.getElementById('confirmPassword').classList.add('error');
+                return;
+            }
+
+            credentials.password = newPass;
+            localStorage.setItem('dashboardCredentials', JSON.stringify(credentials));
+            document.getElementById('passwordSuccess').classList.add('show');
+            document.getElementById('confirmPassword').classList.add('success');
+            ['currentPassword', 'newPassword', 'confirmPassword'].forEach(id => document.getElementById(id).value = '');
+            showToast('Password updated successfully!');
+        }
+
+        function logout() { localStorage.removeItem('dashboardCredentials'); window.location.href = 'login.html'; }
+    </script>
+</body>
+</html>
